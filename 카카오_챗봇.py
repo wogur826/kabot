@@ -31,8 +31,8 @@ def ask():
                 # 시트 맨 아래에 새로운 줄 추가
                 sheet.append_row([new_region, new_address])
                 answer = f"✅ {new_region} 주소가 구글 시트에 영구 등록되었습니다!"
-        except Exception as e:
-            answer = f"등록 중 오류 발생: {str(e)}"
+  except Exception as e:
+        answer = f"시트 등록 실패: {str(e)}"
 
     # 2. 검색 기능
     else:
@@ -57,5 +57,6 @@ def ask():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+
 
 
