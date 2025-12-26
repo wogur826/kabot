@@ -1,49 +1,56 @@
 # -*- coding: utf-8 -*-
 from flask import Flask, request, jsonify
+import gspread
+from google.oauth2.service_account import Credentials
 
 app = Flask(__name__)
 
-# 처음 기본 정보 (서버가 켜질 때 초기화됨)
-my_info = {
-    "안동": "안동하회마을 안동읍 471-9",
-    "서울": "서울특별시 중구 세종대로 110"
-}
+# 구글 시트 연결 설정
+scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+creds = Credentials.from_service_account_file('key.json', scopes=scope)
+client = gspread.authorize(creds)
+
+# 아까 만든 시트 이름 'chatbot_db'와 정확히 일치해야 합니다.
+spreadsheet = client.open("chatbot_db")
+sheet = spreadsheet.sheet1
 
 @app.route('/ask', methods=['POST'])
 def ask():
     req = request.get_json()
-    user_input = req['userRequest']['utterance'].strip() # 사용자가 보낸 메시지
-    
-    # 1. "추가" 기능 구현
+    user_input = req['userRequest']['utterance'].strip()
+
+    # 1. 추가 기능: "추가 지역명 주소"
     if user_input.startswith("추가"):
         try:
-            # "추가 대구 주소..." -> ["추가", "대구", "주소..."] 로 나눔
-            parts = user_input.split(" ", 2) 
+            parts = user_input.split(" ", 2)
             if len(parts) < 3:
                 answer = "'추가 지역명 주소' 형식으로 입력해주세요."
             else:
-                new_region = parts[1] # 대구
-                new_address = parts[2] # 대구광역시 달서구...
-                my_info[new_region] = new_address # 메모리에 저장
-                answer = f"✅ {new_region} 주소가 등록되었습니다!"
+                new_region = parts[1]
+                new_address = parts[2]
+                # 시트 맨 아래에 새로운 줄 추가
+                sheet.append_row([new_region, new_address])
+                answer = f"✅ {new_region} 주소가 구글 시트에 영구 등록되었습니다!"
         except Exception as e:
-            answer = "등록 중 오류가 발생했습니다."
+            answer = f"등록 중 오류 발생: {str(e)}"
 
-    # 2. 기존 검색 기능
+    # 2. 검색 기능
     else:
-        answer = my_info.get(user_input, "등록된 정보가 없습니다.")
+        try:
+            # 시트의 A열에서 지역명 검색
+            cell = sheet.find(user_input)
+            if cell:
+                # 검색된 줄의 B열(주소) 가져오기
+                answer = sheet.cell(cell.row, 2).value
+            else:
+                answer = "등록된 정보가 없습니다."
+        except:
+            answer = "등록된 정보가 없습니다."
 
-    # 카카오톡 응답 형식
     res = {
         "version": "2.0",
         "template": {
-            "outputs": [
-                {
-                    "simpleText": {
-                        "text": answer
-                    }
-                }
-            ]
+            "outputs": [{"simpleText": {"text": answer}}]
         }
     }
     return jsonify(res)
