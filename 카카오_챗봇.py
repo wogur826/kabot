@@ -35,17 +35,17 @@ def ask():
         answer = f"시트 등록 실패: {str(e)}"
 
     # 2. 검색 기능
+  # 2. 검색 기능 부분 수정
     else:
         try:
-            # 시트의 A열에서 지역명 검색
             cell = sheet.find(user_input)
             if cell:
-                # 검색된 줄의 B열(주소) 가져오기
                 answer = sheet.cell(cell.row, 2).value
             else:
-                answer = "등록된 정보가 없습니다."
-        except:
-            answer = "등록된 정보가 없습니다."
+                answer = f"'{user_input}'은 시트에 없습니다."
+        except Exception as e:
+            # 에러가 나면 카톡으로 에러 내용을 보냄
+            answer = f"시트 연결 에러: {str(e)}"
 
     res = {
         "version": "2.0",
@@ -57,6 +57,7 @@ def ask():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+
 
 
 
