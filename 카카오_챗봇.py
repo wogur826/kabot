@@ -12,7 +12,7 @@ client = gspread.authorize(creds)
 
 # 아까 만든 시트 이름 'chatbot_db'와 정확히 일치해야 합니다.
 spreadsheet = client.open("chatbot_db")
-sheet = spreadsheet.worksheet("시트1")
+sheet = spreadsheet.get_worksheet(0)
 
 @app.route('/ask', methods=['POST'])
 def ask():
@@ -57,6 +57,7 @@ def ask():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+
 
 
 
