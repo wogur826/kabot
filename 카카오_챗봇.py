@@ -11,7 +11,7 @@ creds = Credentials.from_service_account_file('key.json', scopes=scope)
 client = gspread.authorize(creds)
 
 # 아까 만든 시트 이름 'chatbot_db'와 정확히 일치해야 합니다.
-spreadsheet = client.open("chatbot_db")
+spreadsheet = client.open("chatbot.db")
 sheet = spreadsheet.sheet1
 
 @app.route('/ask', methods=['POST'])
@@ -57,3 +57,4 @@ def ask():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+
